@@ -7,7 +7,6 @@ import Network.Simple.TCP
 
 main :: IO ()
 main = do
-    -- You can use print statements as follows for debugging, they'll be visible when running tests.
     BLC.putStrLn "Logs from your program will appear here"
 
     let host = "127.0.0.1"
