@@ -1,14 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Main (main) where
 
 import Control.Applicative
-import Data.Attoparsec.ByteString.Char8 (Parser, char8, count, decimal, endOfLine, parseOnly, string, take, takeTill)
+import Data.Attoparsec.ByteString.Char8 (Parser, char8, count, decimal, digit, endOfLine, isSpace, parseOnly, skipSpace, space, string, take, takeTill)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BLC
 import Data.Maybe (fromMaybe)
 import Network.Simple.TCP (HostPreference (..), recv, send, serve)
+
+import Data.Char (ord) -- DELETE THIS
 
 ok :: ByteString
 ok = "200 OK"
@@ -22,6 +25,8 @@ get = "GET"
 post :: ByteString
 post = "POST"
 
+packStr = B.pack . map (fromIntegral . ord) -- debug only
+
 --emptyReq :: Req
 --emptyReq =
 --Req
@@ -32,13 +37,21 @@ post = "POST"
 --, body = ""
 --}
 
-data Method = Method ByteString
+newtype Method = Method ByteString
     deriving (Show)
 
+newtype Path = Path ByteString
+    deriving (Show)
+
+data Protocol = HTTP1_0 | HTTP1_1
+  deriving (Show)
+--newtype Protocol = Protocol ByteString
+    --deriving (Show)
+
 data Req = Req
-    { method :: ByteString
-    --, path :: ByteString
-    --, protocol :: ByteString
+    { method :: Method
+    , path :: Path
+    , protocol :: Protocol
     --, headers :: [ByteString]
     --, body :: ByteString
     }
@@ -47,11 +60,24 @@ data Req = Req
 parseMethod :: Parser Method
 parseMethod = Method <$> (string "GET" <|> string "POST")
 
---runParser = parseOnly parse
+parsePath :: Parser Path
+parsePath = Path <$> takeTill isSpace
 
---parseReq :: Parser Req
---parseSimpleString =
---Req <$> (string '+' *> takeTill isEOL <* endOfLine)
+parseProtocol :: Parser Protocol
+parseProtocol = (\case
+                  "1.0" -> HTTP1_0
+                  "1.1" -> HTTP1_1
+                ) <$> (string "HTTP/" *> (string "1.0" <|> string "1.1"))
+
+parseReq :: Parser Req
+parseReq =
+    Req <$> parseMethod
+        <* space
+        <*> parsePath
+        <* space
+        <*> parseProtocol
+
+--runParser = parseOnly
 
 main :: IO ()
 main = do
