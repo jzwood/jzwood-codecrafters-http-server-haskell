@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
@@ -44,9 +44,10 @@ newtype Path = Path ByteString
     deriving (Show)
 
 data Protocol = HTTP1_0 | HTTP1_1
-  deriving (Show)
+    deriving (Show)
+
 --newtype Protocol = Protocol ByteString
-    --deriving (Show)
+--deriving (Show)
 
 data Req = Req
     { method :: Method
@@ -64,10 +65,9 @@ parsePath :: Parser Path
 parsePath = Path <$> takeTill isSpace
 
 parseProtocol :: Parser Protocol
-parseProtocol = (\case
-                  "1.0" -> HTTP1_0
-                  "1.1" -> HTTP1_1
-                ) <$> (string "HTTP/" *> (string "1.0" <|> string "1.1"))
+parseProtocol =
+    (string "HTTP/1.0" *> return HTTP1_0)
+        <|> (string "HTTP/1.1" *> return HTTP1_1)
 
 parseReq :: Parser Req
 parseReq =
