@@ -12,6 +12,10 @@ build-type:     Simple
 executable hs-http-server-clone-exe
   main-is: Main.hs
   other-modules:
+      Format
+      Handle
+      Parser
+      Syntax
       Paths_hs_http_server_clone
   hs-source-dirs:
       app
