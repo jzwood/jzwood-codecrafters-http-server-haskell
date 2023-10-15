@@ -5,30 +5,10 @@ module Main (main) where
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BLC
-import Data.Function
-import Data.Functor
 import Data.Maybe (fromMaybe)
-import Format
 import Handle
 import Network.Simple.TCP (HostPreference (..), recv, send, serve)
 import Parser
-import Syntax
-
-import Data.Char (ord) -- DELETE THIS
-
-ok :: ByteString
-ok = "200 OK"
-
-notFound :: ByteString
-notFound = "404 Not Found"
-
-get :: ByteString
-get = "GET"
-
-post :: ByteString
-post = "POST"
-
-packStr = B.pack . map (fromIntegral . ord) -- debug only
 
 parse :: ByteString -> ByteString
 parse bsReq =

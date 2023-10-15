@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Handle where
+module Handle (handle) where
 
 import Control.Applicative
 import Data.ByteString (ByteString)
@@ -14,14 +14,17 @@ import qualified Data.ByteString as B
 import Format
 import Syntax
 
+toHeader :: ByteString -> ByteString -> (ByteString, ByteString)
+toHeader = (,)
+
 ok :: ByteString -> Resp
 ok body =
     Resp
         { protocol' = HTTP1_1
         , status = Status 200
-        , headers = [ pack "Content-Length: " `B.append` (pack . show . B.length) body,
-                      pack "Content-Type: text/plain"
-                    ]
+        , headers' = [ toHeader "Content-Type" "text/plain"
+                     , toHeader "Content-Length" ((pack . show . B.length) body)
+                     ]
         , body
         }
 
@@ -30,17 +33,18 @@ notFound =
     Resp
         { protocol' = HTTP1_1
         , status = Status 404
-        , headers = []
+        , headers' = []
         , body = ""
         }
 
 parsePath :: Parser ByteString
 parsePath =  (string "/" *> endOfInput $> "")
          <|> (string "/echo/" *> takeByteString)
+         <|> (string "/echo/" *> takeByteString)
 
 handle :: Req -> ByteString
 handle Req{path = (Path path)} =
     toBs $
         case parseOnly parsePath path of
-            Right bs -> ok bs
-            Left _ -> notFound
+          Right bs -> ok bs
+          Left _ -> notFound

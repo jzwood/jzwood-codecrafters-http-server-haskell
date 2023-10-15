@@ -2,6 +2,9 @@ module Syntax where
 
 import Data.ByteString (ByteString)
 
+type KeyVal = (ByteString, ByteString)
+type Map = [KeyVal]
+
 newtype Method = Method ByteString
     deriving (Eq, Show)
 
@@ -18,13 +21,14 @@ data Req = Req
     { method :: Method
     , path :: Path
     , protocol :: Protocol
+    , headers :: Map
     }
     deriving (Eq, Show)
 
 data Resp = Resp
     { protocol' :: Protocol
     , status :: Status
-    , headers :: [ByteString]
+    , headers' :: Map
     , body :: ByteString
     }
     deriving (Eq, Show)

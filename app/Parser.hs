@@ -6,7 +6,7 @@ import Syntax
 
 import Data.Functor
 import Control.Applicative
-import Data.Attoparsec.ByteString.Char8 (Parser, char8, count, decimal, digit, endOfLine, isSpace, parseOnly, skipSpace, space, string, take, takeTill)
+import Data.Attoparsec.ByteString.Char8 (Parser, endOfLine, isSpace, parseOnly, skipSpace, space, string, take, takeTill, many', takeWhile1, takeByteString)
 import Data.ByteString (ByteString)
 
 parseMethod :: Parser Method
@@ -21,6 +21,15 @@ parseProtocol =
         <|> (string "HTTP/1.1" $> HTTP1_1)
         <|> (string "HTTP/2.0" $> HTTP2_0)
 
+parseLine :: Parser ByteString
+parseLine = takeTill (=='\r') <* endOfLine
+
+parseHeader :: Parser KeyVal
+parseHeader = liftA2 (,) (takeTill (==':') <* string ":" <* skipSpace) parseLine
+
+parseHeaders :: Parser Map
+parseHeaders = many' parseHeader
+
 parseReq :: Parser Req
 parseReq =
     Req <$> parseMethod
@@ -28,6 +37,7 @@ parseReq =
         <*> parsePath
         <* space
         <*> parseProtocol
+        <*> parseHeaders
 
 runParser :: ByteString -> Either String Req
 runParser = parseOnly parseReq
