@@ -19,7 +19,9 @@ ok body =
     Resp
         { protocol' = HTTP1_1
         , status = Status 200
-        , headers = [pack "Content-Length: " `B.append` (pack . show . B.length) body]
+        , headers = [ pack "Content-Length: " `B.append` (pack . show . B.length) body,
+                      pack "Content-Type: text/plain"
+                    ]
         , body
         }
 
