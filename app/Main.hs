@@ -30,6 +30,12 @@ post = "POST"
 
 packStr = B.pack . map (fromIntegral . ord) -- debug only
 
+parse :: ByteString -> ByteString
+parse bsReq =
+    case runParser bsReq of
+        Right req -> handle req
+        Left _ -> "HTTP/1.1 404 Not Found\r\n\r\n"
+
 main :: IO ()
 main = do
     BLC.putStrLn "Logs from your program will appear here"
@@ -43,7 +49,7 @@ main = do
             BLC.putStrLn $ "Accepted connection from " <> BLC.pack (show serverAddr) <> "."
             mReq <- recv serverSocket 1024
             let bsReq = fromMaybe B.empty mReq
-            send serverSocket $
-              case runParser bsReq of
-                  Right req -> handle req
-                  Left _ -> "HTTP/1.1 404 Not Found\r\n\r\n"
+                bsRes = parse bsReq
+            --print bsReq
+            --print bsRes
+            send serverSocket bsRes

@@ -28,5 +28,3 @@ instance ToBs Resp where
             `B.append` B.intercalate "\r\n" headers
             `B.append` "\r\n\r\n"
             `B.append` body
-            `B.append` "\r\n\r\n"
-
