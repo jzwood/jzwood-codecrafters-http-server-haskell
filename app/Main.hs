@@ -2,29 +2,34 @@
 
 module Main (main) where
 
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy.Char8 as BLC
 import Data.Maybe (fromMaybe)
 import Handle
-import Format
+import Syntax
 import Network.Simple.TCP (HostPreference (..), recv, send, serve)
-import Parser
+import System.Environment (getArgs)
+import Data.ByteString (ByteString)
+import Data.ByteString.Char8 (pack)
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy.Char8 as BLC
 
 main :: IO ()
 main = do
+    argv <- getArgs
+
     BLC.putStrLn "Logs from your program will appear here"
 
     let host = "127.0.0.1"
         port = "4221"
+        env = case argv of
+            ["--directory", directory] -> Env $ Just $ pack directory
+            [] -> Env Nothing
 
     BLC.putStrLn $ "Listening on " <> BLC.pack host <> ":" <> BLC.pack port
     serve (Host host) port $ \(serverSocket, serverAddr) ->
         do
             BLC.putStrLn $ "Accepted connection from " <> BLC.pack (show serverAddr) <> "."
             mReq <- recv serverSocket 1024
-            let bsReq = fromMaybe B.empty mReq
-            bsRes <- handle bsReq
+            bsRes <- handle env $ fromMaybe B.empty mReq
             --print bsReq
             --print bsRes
             send serverSocket bsRes

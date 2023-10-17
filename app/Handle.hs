@@ -20,17 +20,23 @@ import Syntax
 toHeader :: ByteString -> ByteString -> (ByteString, ByteString)
 toHeader = (,)
 
-ok :: ByteString -> Resp
-ok body =
+ok :: ByteString -> ByteString -> Resp
+ok contentType body =
     Resp
         { protocol' = HTTP1_1
         , status = Status 200
         , headers' =
-            [ toHeader "Content-Type" "text/plain"
+            [ toHeader "Content-Type" contentType
             , toHeader "Content-Length" ((pack . show . B.length) body)
             ]
         , body
         }
+
+txt :: ByteString -> Resp
+txt = ok "text/plain"
+
+file :: ByteString -> Resp
+file = ok "application/octet-stream"
 
 notFound :: Resp
 notFound =
@@ -47,12 +53,12 @@ parseRoute =
         <|> (string "/user-agent" *> endOfInput $> ["user-agent"])
         <|> (string "/echo/" *> takeByteString <&> \echo -> ["echo", echo])
 
-routeToResp :: Map -> [ByteString] -> Resp
-routeToResp _ ["/"] = ok ""
-routeToResp _ ["echo", echo] = ok echo
-routeToResp headers ["user-agent"] = ok (getHeader "User-Agent" headers)
-routeToResp _ ["files", filename] = ok "@TODO"
-routeToResp _ _ = notFound
+routeToResp :: Map -> [ByteString] -> IO Resp
+routeToResp _ ["/"] = pure $ txt ""
+routeToResp _ ["echo", echo] = pure $ txt echo
+routeToResp headers ["user-agent"] = pure $ txt (getHeader "User-Agent" headers)
+routeToResp _ ["files", filename] = pure $ file "@TODO"
+routeToResp _ _ = pure notFound
 
 --handle :: Req -> Resp
 --handle Req{path = (Path path), headers} =
@@ -63,10 +69,8 @@ routeToResp _ _ = notFound
 handle' :: Req -> IO Resp
 handle' = undefined
 
-handle :: ByteString -> IO ByteString
-handle bsReq =
+handle :: Env -> ByteString -> IO ByteString
+handle env bsReq =
     case runParser bsReq of
-      Right req -> do
-          resp <- handle' req
-          pure $ toBs resp
+      Right req -> toBs <$> handle' req
       Left _ -> pure $ toBs notFound
