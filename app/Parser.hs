@@ -1,13 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Parser where
+module Parser (parseReq, runParser) where
 
 import Syntax
 
-import Data.Functor
 import Control.Applicative
-import Data.Attoparsec.ByteString.Char8 (Parser, endOfLine, isSpace, parseOnly, skipSpace, space, string, take, takeTill, many', takeWhile1, takeByteString)
+import Data.Attoparsec.ByteString.Char8 (
+    Parser,
+    endOfLine,
+    isSpace,
+    many',
+    parseOnly,
+    skipSpace,
+    space,
+    string,
+    takeTill,
+ )
 import Data.ByteString (ByteString)
+import Data.Functor
 
 parseMethod :: Parser Method
 parseMethod = Method <$> (string "GET" <|> string "POST")
@@ -22,10 +32,10 @@ parseProtocol =
         <|> (string "HTTP/2.0" $> HTTP2_0)
 
 parseLine :: Parser ByteString
-parseLine = takeTill (=='\r') <* endOfLine
+parseLine = takeTill (== '\r') <* endOfLine
 
 parseHeader :: Parser KeyVal
-parseHeader = liftA2 (,) (takeTill (==':') <* string ":" <* skipSpace) parseLine
+parseHeader = liftA2 (,) (takeTill (== ':') <* string ":" <* skipSpace) parseLine
 
 parseHeaders :: Parser Map
 parseHeaders = many' parseHeader
@@ -37,7 +47,9 @@ parseReq =
         <*> parsePath
         <* space
         <*> parseProtocol
+        <* endOfLine
         <*> parseHeaders
+        <* endOfLine
 
 runParser :: ByteString -> Either String Req
 runParser = parseOnly parseReq

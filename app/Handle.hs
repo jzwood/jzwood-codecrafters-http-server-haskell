@@ -37,14 +37,20 @@ notFound =
         , body = ""
         }
 
-parsePath :: Parser ByteString
-parsePath =  (string "/" *> endOfInput $> "")
-         <|> (string "/echo/" *> takeByteString)
-         <|> (string "/echo/" *> takeByteString)
+parseRoute :: Parser [ByteString]
+parseRoute =  (string "/" *> endOfInput $> ["/"])
+         <|> (string "/user-agent" *> endOfInput $> ["user-agent"])
+         <|> (string "/echo/" *> takeByteString <&> \echo -> ["echo", echo])
+
+routeToResp :: Map -> [ByteString] -> Resp
+routeToResp _ ["/"] = ok ""
+routeToResp _ ["echo", echo] = ok echo
+routeToResp headers ["user-agent"] = ok (getHeader "User-Agent" headers)
+routeToResp _ _ = notFound
 
 handle :: Req -> ByteString
-handle Req{path = (Path path)} =
+handle Req{path = (Path path), headers} =
     toBs $
-        case parseOnly parsePath path of
-          Right bs -> ok bs
+        case parseOnly parseRoute path of
+          Right bs -> routeToResp headers bs
           Left _ -> notFound

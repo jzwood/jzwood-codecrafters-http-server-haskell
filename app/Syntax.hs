@@ -1,9 +1,17 @@
 module Syntax where
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
+import Data.Functor
+import Data.Function
+import Data.Maybe (fromMaybe)
+import Data.List (lookup)
 
 type KeyVal = (ByteString, ByteString)
 type Map = [KeyVal]
+
+getHeader :: ByteString -> Map -> ByteString
+getHeader key headers = lookup key headers & fromMaybe B.empty
 
 newtype Method = Method ByteString
     deriving (Eq, Show)

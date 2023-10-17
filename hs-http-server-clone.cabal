@@ -16,6 +16,7 @@ executable hs-http-server-clone-exe
       Handle
       Parser
       Syntax
+      Test
       Paths_hs_http_server_clone
   hs-source-dirs:
       app
