@@ -66,11 +66,11 @@ routeToResp _ _ = pure notFound
         --Right bs -> routeToResp headers bs
         --Left _ -> notFound
 
-handle' :: Req -> IO Resp
+handle' :: Env -> Req -> IO Resp
 handle' = undefined
 
 handle :: Env -> ByteString -> IO ByteString
 handle env bsReq =
     case runParser bsReq of
-      Right req -> toBs <$> handle' req
+      Right req -> toBs <$> handle' env req
       Left _ -> pure $ toBs notFound
