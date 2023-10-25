@@ -21,8 +21,8 @@ main = do
     let host = "127.0.0.1"
         port = "4221"
         env = case argv of
-            ["--directory", directory] -> Env $ Just $ pack directory
-            [] -> Env Nothing
+            ["--directory", directory] -> Env $ pack directory
+            _ -> Env B.empty
 
     BLC.putStrLn $ "Listening on " <> BLC.pack host <> ":" <> BLC.pack port
     serve (Host host) port $ \(serverSocket, serverAddr) ->

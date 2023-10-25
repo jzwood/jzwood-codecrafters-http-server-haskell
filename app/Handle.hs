@@ -56,23 +56,23 @@ parseRoute =
         <|> (string "/files/" *> takeByteString <&> \path -> ["files", path])
         <|> (string "/echo/" *> takeByteString <&> \echo -> ["echo", echo])
 
-routeToResp :: Map -> [ByteString] -> IO Resp
-routeToResp _ ["/"] = pure $ txt ""
-routeToResp _ ["echo", echo] = pure $ txt echo
-routeToResp headers ["user-agent"] = pure $ txt (getHeader "User-Agent" headers)
-routeToResp _ ["files", bsPath] =
-    B.toFilePath bsPath
+routeToResp :: Env -> Map -> [ByteString] -> IO Resp
+routeToResp _ _ ["/"] = pure $ txt ""
+routeToResp _ _ ["echo", echo] = pure $ txt echo
+routeToResp _ headers ["user-agent"] = pure $ txt (getHeader "User-Agent" headers)
+routeToResp Env { dir } _ ["files", bsPath] =
+    B.toFilePath (dir <> "/" <> bsPath)
         >>= doesFileExist
         >>= \exists ->
             if exists
-                then B.toFilePath bsPath >>= B.readFile <&> file
+                then B.toFilePath (dir <> "/" <> bsPath) >>= B.readFile <&> file
                 else pure notFound
-routeToResp _ _ = pure notFound
+routeToResp _ _ _ = pure notFound
 
 handle' :: Env -> Req -> IO Resp
 handle' env Req{path = (Path path), headers} =
     case parseOnly parseRoute path of
-        Right bs -> routeToResp headers bs
+        Right bs -> routeToResp env headers bs
         Left _ -> pure notFound
 
 handle :: Env -> ByteString -> IO ByteString

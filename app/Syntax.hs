@@ -12,7 +12,7 @@ type Map = [KeyVal]
 getHeader :: ByteString -> Map -> ByteString
 getHeader key hs = lookup key hs & fromMaybe B.empty
 
-newtype Env = Env { dir :: Maybe ByteString }
+newtype Env = Env { dir :: ByteString }
 
 newtype Method = Method ByteString
     deriving (Eq, Show)
