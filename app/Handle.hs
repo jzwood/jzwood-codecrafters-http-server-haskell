@@ -1,14 +1,16 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Handle (handle) where
 
 import Control.Applicative
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
 import Data.ByteString.Char8 (pack)
-import Data.Functor
 import Data.Function
+import Data.Functor
+import System.Directory (doesFileExist)
 
 --import Data.Attoparsec.ByteString.Char8 (Parser, char8, count, decimal, digit, endOfLine, isSpace, parseOnly, skipSpace, space, string, take, takeTill)
 import Data.Attoparsec.ByteString.Char8 (Parser, endOfInput, parseOnly, string, takeByteString)
@@ -51,26 +53,30 @@ parseRoute :: Parser [ByteString]
 parseRoute =
     (string "/" *> endOfInput $> ["/"])
         <|> (string "/user-agent" *> endOfInput $> ["user-agent"])
+        <|> (string "/files/" *> takeByteString <&> \path -> ["files", path])
         <|> (string "/echo/" *> takeByteString <&> \echo -> ["echo", echo])
 
 routeToResp :: Map -> [ByteString] -> IO Resp
 routeToResp _ ["/"] = pure $ txt ""
 routeToResp _ ["echo", echo] = pure $ txt echo
 routeToResp headers ["user-agent"] = pure $ txt (getHeader "User-Agent" headers)
-routeToResp _ ["files", filename] = pure $ file "@TODO"
+routeToResp _ ["files", bsPath] =
+    B.toFilePath bsPath
+        >>= doesFileExist
+        >>= \exists ->
+            if exists
+                then B.toFilePath bsPath >>= B.readFile <&> file
+                else pure notFound
 routeToResp _ _ = pure notFound
 
---handle :: Req -> Resp
---handle Req{path = (Path path), headers} =
-    --case parseOnly parseRoute path of
-        --Right bs -> routeToResp headers bs
-        --Left _ -> notFound
-
 handle' :: Env -> Req -> IO Resp
-handle' = undefined
+handle' env Req{path = (Path path), headers} =
+    case parseOnly parseRoute path of
+        Right bs -> routeToResp headers bs
+        Left _ -> pure notFound
 
 handle :: Env -> ByteString -> IO ByteString
 handle env bsReq =
     case runParser bsReq of
-      Right req -> toBs <$> handle' env req
-      Left _ -> pure $ toBs notFound
+        Right req -> toBs <$> handle' env req
+        Left _ -> pure $ toBs notFound
