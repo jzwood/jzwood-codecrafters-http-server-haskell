@@ -20,11 +20,11 @@ instance ToBs Status where
     toBs (Status _) = "404 NOT FOUND"
 
 instance ToBs Resp where
-    toBs Resp{protocol', status, headers', body} =
+    toBs Resp{protocol', status, headers', body'} =
         toBs protocol'
             `B.append` " "
             `B.append` toBs status
             `B.append` "\r\n"
             `B.append` B.intercalate "\r\n" ((\(k, v) -> B.concat [k, ": ", v]) <$> headers')
             `B.append` "\r\n\r\n"
-            `B.append` body
+            `B.append` body'

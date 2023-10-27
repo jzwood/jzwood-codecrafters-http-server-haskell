@@ -17,6 +17,9 @@ newtype Env = Env { dir :: ByteString }
 newtype Path = Path ByteString
     deriving (Eq, Show)
 
+newtype Body = Body ByteString
+    deriving (Eq, Show)
+
 newtype Status = Status Integer
     deriving (Eq, Show)
 
@@ -31,6 +34,7 @@ data Req = Req
     , path :: Path
     , protocol :: Protocol
     , headers :: Map
+    , body :: Body
     }
     deriving (Eq, Show)
 
@@ -38,6 +42,6 @@ data Resp = Resp
     { protocol' :: Protocol
     , status :: Status
     , headers' :: Map
-    , body :: ByteString
+    , body' :: ByteString
     }
     deriving (Eq, Show)

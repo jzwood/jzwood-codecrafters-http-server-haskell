@@ -4,7 +4,9 @@ module Parser (parseReq, runParser) where
 
 import Syntax
 
+import Data.Char (digitToInt)
 import Control.Applicative
+import qualified Data.ByteString as B
 import Data.Attoparsec.ByteString.Char8 (
     Parser,
     endOfLine,
@@ -14,10 +16,13 @@ import Data.Attoparsec.ByteString.Char8 (
     skipSpace,
     space,
     string,
+    take,
     takeTill,
+    digit
  )
 import Data.ByteString (ByteString)
 import Data.Functor
+import Prelude hiding (take)
 
 parseMethod :: Parser Method
 parseMethod =
@@ -42,15 +47,18 @@ parseHeader = liftA2 (,) (takeTill (== ':') <* string ":" <* skipSpace) parseLin
 parseHeaders :: Parser Map
 parseHeaders = many' parseHeader
 
+parseHeadersAndBody :: Parser (Map, Body)
+parseHeadersAndBody = parseHeaders >>= \h -> take 160 <&> \body -> (h, Body body)
+
 parseReq :: Parser Req
 parseReq =
-    Req <$> parseMethod
+    (\m pa pr (he, bo) -> Req m pa pr he bo) <$> parseMethod
         <* space
         <*> parsePath
         <* space
         <*> parseProtocol
         <* endOfLine
-        <*> parseHeaders
+        <*> parseHeadersAndBody
         <* endOfLine
 
 runParser :: ByteString -> Either String Req

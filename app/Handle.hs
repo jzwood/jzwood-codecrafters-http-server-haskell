@@ -23,15 +23,15 @@ toHeader :: ByteString -> ByteString -> (ByteString, ByteString)
 toHeader = (,)
 
 ok :: ByteString -> ByteString -> Resp
-ok contentType body =
+ok contentType body' =
     Resp
         { protocol' = HTTP1_1
         , status = Status 200
         , headers' =
             [ toHeader "Content-Type" contentType
-            , toHeader "Content-Length" ((pack . show . B.length) body)
+            , toHeader "Content-Length" ((pack . show . B.length) body')
             ]
-        , body
+        , body'
         }
 
 txt :: ByteString -> Resp
@@ -46,7 +46,7 @@ notFound =
         { protocol' = HTTP1_1
         , status = Status 404
         , headers' = []
-        , body = ""
+        , body' = ""
         }
 
 parseRoute :: Parser [ByteString]
