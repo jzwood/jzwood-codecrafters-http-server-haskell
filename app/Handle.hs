@@ -56,23 +56,24 @@ parseRoute =
         <|> (string "/files/" *> takeByteString <&> \path -> ["files", path])
         <|> (string "/echo/" *> takeByteString <&> \echo -> ["echo", echo])
 
-routeToResp :: Env -> Map -> [ByteString] -> IO Resp
-routeToResp _ _ ["/"] = pure $ txt ""
-routeToResp _ _ ["echo", echo] = pure $ txt echo
-routeToResp _ headers ["user-agent"] = pure $ txt (getHeader "User-Agent" headers)
-routeToResp Env { dir } _ ["files", bsPath] =
+routeToResp :: Env -> Method -> Map -> [ByteString] -> IO Resp
+routeToResp _ GET _ ["/"] = pure $ txt ""
+routeToResp _ GET _ ["echo", echo] = pure $ txt echo
+routeToResp _ GET headers ["user-agent"] = pure $ txt (getHeader "User-Agent" headers)
+routeToResp Env { dir } GET _ ["files", bsPath] =
     B.toFilePath (dir <> "/" <> bsPath)
         >>= doesFileExist
         >>= \exists ->
             if exists
                 then B.toFilePath (dir <> "/" <> bsPath) >>= B.readFile <&> file
                 else pure notFound
-routeToResp _ _ _ = pure notFound
+routeToResp Env { dir } GET _ ["files", bsPath] = pure notFound
+routeToResp _ _ _ _ = pure notFound
 
 handle' :: Env -> Req -> IO Resp
-handle' env Req{path = (Path path), headers} =
+handle' env Req{path = (Path path), headers, method } =
     case parseOnly parseRoute path of
-        Right bs -> routeToResp env headers bs
+        Right bs -> routeToResp env method headers bs
         Left _ -> pure notFound
 
 handle :: Env -> ByteString -> IO ByteString

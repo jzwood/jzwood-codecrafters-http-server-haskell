@@ -20,7 +20,9 @@ import Data.ByteString (ByteString)
 import Data.Functor
 
 parseMethod :: Parser Method
-parseMethod = Method <$> (string "GET" <|> string "POST")
+parseMethod =
+    (string "GET" $> GET)
+        <|> (string "POST" $> POST)
 
 parsePath :: Parser Path
 parsePath = Path <$> takeTill isSpace

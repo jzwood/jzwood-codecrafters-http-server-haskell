@@ -14,13 +14,13 @@ getHeader key hs = lookup key hs & fromMaybe B.empty
 
 newtype Env = Env { dir :: ByteString }
 
-newtype Method = Method ByteString
-    deriving (Eq, Show)
-
 newtype Path = Path ByteString
     deriving (Eq, Show)
 
 newtype Status = Status Integer
+    deriving (Eq, Show)
+
+data Method = GET | POST
     deriving (Eq, Show)
 
 data Protocol = HTTP1_0 | HTTP1_1 | HTTP2_0
