@@ -40,7 +40,7 @@ file :: ByteString -> Resp
 file = ok "application/octet-stream" 200
 
 write :: Resp
-write = ok "text/plain" 202 B.empty
+write = ok "text/plain" 201 B.empty
 
 notFound :: Resp
 notFound =
