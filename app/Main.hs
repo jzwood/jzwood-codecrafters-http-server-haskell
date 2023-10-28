@@ -7,7 +7,6 @@ import Handle
 import Syntax
 import Network.Simple.TCP (HostPreference (..), recv, send, serve)
 import System.Environment (getArgs)
-import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (pack)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy.Char8 as BLC

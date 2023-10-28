@@ -1,14 +1,14 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Parser (parseReq, runParser) where
 
 import Syntax
 
-import Data.Char (digitToInt)
 import Control.Applicative
-import qualified Data.ByteString as B
 import Data.Attoparsec.ByteString.Char8 (
     Parser,
+    digit,
     endOfLine,
     isSpace,
     many',
@@ -18,9 +18,12 @@ import Data.Attoparsec.ByteString.Char8 (
     string,
     take,
     takeTill,
-    digit
  )
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
+import Data.ByteString.Char8 (readInt)
+import Data.Char (digitToInt)
+import Data.Function
 import Data.Functor
 import Prelude hiding (take)
 
@@ -47,8 +50,17 @@ parseHeader = liftA2 (,) (takeTill (== ':') <* string ":" <* skipSpace) parseLin
 parseHeaders :: Parser Map
 parseHeaders = many' parseHeader
 
+headersToLength :: Map -> Int
+headersToLength headers =
+    headers
+        & getHeader "Content-Length"
+        & readInt
+        & \case
+            Just (length, _) -> length
+            Nothing -> 0
+
 parseHeadersAndBody :: Parser (Map, Body)
-parseHeadersAndBody = parseHeaders >>= \h -> take 160 <&> \body -> (h, Body body)
+parseHeadersAndBody = parseHeaders >>= \h -> (take . headersToLength) h <&> \b -> (h, Body b)
 
 parseReq :: Parser Req
 parseReq =
