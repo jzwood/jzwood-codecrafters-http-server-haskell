@@ -51,16 +51,16 @@ parseHeaders :: Parser Map
 parseHeaders = many' parseHeader
 
 headersToLength :: Map -> Int
-headersToLength headers =
-    headers
+headersToLength hds =
+    hds
         & getHeader "Content-Length"
         & readInt
         & \case
-            Just (length, _) -> length
+            Just (int, _) -> int
             Nothing -> 0
 
 parseHeadersAndBody :: Parser (Map, Body)
-parseHeadersAndBody = parseHeaders >>= \h -> (take . headersToLength) h <&> \b -> (h, Body b)
+parseHeadersAndBody = parseHeaders >>= \h -> endOfLine *> (take . headersToLength) h <&> \b -> (h, Body b)
 
 parseReq :: Parser Req
 parseReq =
@@ -71,7 +71,6 @@ parseReq =
         <*> parseProtocol
         <* endOfLine
         <*> parseHeadersAndBody
-        <* endOfLine
 
 runParser :: ByteString -> Either String Req
 runParser = parseOnly parseReq

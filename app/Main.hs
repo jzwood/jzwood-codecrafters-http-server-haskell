@@ -29,6 +29,6 @@ main = do
             BLC.putStrLn $ "Accepted connection from " <> BLC.pack (show serverAddr) <> "."
             mReq <- recv serverSocket 1024
             bsRes <- handle env $ fromMaybe B.empty mReq
-            print mReq
+            --print mReq
             --print bsRes
             send serverSocket bsRes

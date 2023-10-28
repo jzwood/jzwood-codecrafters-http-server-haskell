@@ -17,6 +17,7 @@ instance ToBs Protocol where
 
 instance ToBs Status where
     toBs (Status 200) = "200 OK"
+    toBs (Status 202) = "202 CREATED"
     toBs (Status _) = "404 NOT FOUND"
 
 instance ToBs Resp where
