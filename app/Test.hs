@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Test where
+module Test (xxx) where
 
 import Data.Attoparsec.ByteString.Char8 (parseOnly)
 import Data.ByteString (ByteString)

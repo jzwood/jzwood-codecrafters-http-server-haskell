@@ -76,7 +76,7 @@ routeToResp Env { dir } POST Req { body = Body body } ["files", bsPath] = do
 routeToResp _ _ _ _ = pure notFound
 
 handle' :: Env -> Req -> IO Resp
-handle' env req@Req{path = (Path path), headers, method } =
+handle' env req@Req{path = (Path path), method } =
     case parseOnly parseRoute path of
         Right bs -> routeToResp env method req bs
         Left _ -> pure notFound
@@ -84,9 +84,5 @@ handle' env req@Req{path = (Path path), headers, method } =
 handle :: Env -> ByteString -> IO ByteString
 handle env bsReq =
     case runParser bsReq of
-        Right req -> do
-            print req
-            toBs <$> handle' env req
-        Left msg -> do
-            print msg
-            pure $ toBs notFound
+        Right req -> toBs <$> handle' env req
+        Left _ -> pure $ toBs notFound

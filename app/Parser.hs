@@ -6,23 +6,9 @@ module Parser (parseReq, runParser) where
 import Syntax
 
 import Control.Applicative
-import Data.Attoparsec.ByteString.Char8 (
-    Parser,
-    digit,
-    endOfLine,
-    isSpace,
-    many',
-    parseOnly,
-    skipSpace,
-    space,
-    string,
-    take,
-    takeTill,
- )
+import Data.Attoparsec.ByteString.Char8 ( Parser, endOfLine, isSpace, many', parseOnly, skipSpace, space, string, take, takeTill)
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as B
 import Data.ByteString.Char8 (readInt)
-import Data.Char (digitToInt)
 import Data.Function
 import Data.Functor
 import Prelude hiding (take)
